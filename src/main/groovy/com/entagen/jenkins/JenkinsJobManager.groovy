@@ -30,6 +30,28 @@ class JenkinsJobManager {
 
         // create any missing template jobs and delete any jobs matching the template patterns that no longer have branches
         syncJobs(allJobNames, templateJobs)
+
+        syncViews()
+    }
+
+    public List<String> getDeprecatedViewNames(List<String> existingViewNames) {
+        return existingViewNames?.findAll {
+            it.startsWith(this.templateJobPrefix)
+        } ?: []
+    }
+
+    public void deleteDeprecatedViews(List<String> deprecatedViewNames) {
+        println "Deprecated views: $deprecatedViewNames"
+
+        for (String deprecatedViewName in deprecatedViewNames) {
+            jenkinsApi.deleteView(deprecatedViewName, this.nestedView)
+        }
+    }
+
+    public void syncViews() {
+        List<String> existingViewNames = jenkinsApi.getViewNames(this.nestedView)
+        List<String> deprecatedViewNames = getDeprecatedViewNames(existingViewNames)
+        deleteDeprecatedViews(deprecatedViewNames)
     }
 
     public void syncJobs(List<String> allJobNames, List<TemplateJob> templateJobs) {
