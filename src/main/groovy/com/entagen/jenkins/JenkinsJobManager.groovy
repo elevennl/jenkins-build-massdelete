@@ -4,15 +4,12 @@ class JenkinsJobManager {
     String templateJobPrefix
     String templateBranchName
     String gitUrl
-    String nestedView
     String jenkinsUrl
     String branchNameRegex
-    String viewRegex
     String jenkinsUser
     String jenkinsPassword
 
     Boolean dryRun = false
-    Boolean noDelete = false
 
     JenkinsApi jenkinsApi
     GitApi gitApi
@@ -26,21 +23,17 @@ class JenkinsJobManager {
     }
 
     void syncWithRepo() {
-        List<String> allBranchNames = gitApi.branchNames
         List<String> allJobNames = jenkinsApi.jobNames
 
         // ensure that there is at least one job matching the template pattern, collect the set of template jobs
         List<TemplateJob> templateJobs = findRequiredTemplateJobs(allJobNames)
 
         // create any missing template jobs and delete any jobs matching the template patterns that no longer have branches
-        syncJobs(allBranchNames, allJobNames, templateJobs)
+        syncJobs(allJobNames, templateJobs)
     }
 
-    public void syncJobs(List<String> allBranchNames, List<String> allJobNames, List<TemplateJob> templateJobs) {
+    public void syncJobs(List<String> allJobNames, List<TemplateJob> templateJobs) {
         List<String> currentTemplateDrivenJobNames = templateDrivenJobNames(templateJobs, allJobNames)
-        List<String> nonTemplateBranchNames = allBranchNames - templateBranchName
-        List<ConcreteJob> expectedJobs = this.expectedJobs(templateJobs, nonTemplateBranchNames)
-
         deleteDeprecatedJobs(currentTemplateDrivenJobNames)
     }
 
@@ -53,19 +46,12 @@ class JenkinsJobManager {
             final def branchNameRegexMatches = shortenedJobName.matches(safeBranchNameRegex)
 
             if (branchNameRegexMatches) {
-                println "Deleting deprecated job: $jobName"
-//                FIXME
-//                jenkinsApi.deleteJob(jobName)
+                println "Deleting matching build job: $jobName"
+                jenkinsApi.deleteJob(jobName)
             } else {
                 println "Won't delete build job: $jobName doesn't match $shortenedJobName"
             }
         }
-    }
-
-    public List<ConcreteJob> expectedJobs(List<TemplateJob> templateJobs, List<String> branchNames) {
-        branchNames.collect { String branchName ->
-            templateJobs.collect { TemplateJob templateJob -> templateJob.concreteJobForBranch(branchName) }
-        }.flatten()
     }
 
     public List<String> templateDrivenJobNames(List<TemplateJob> templateJobs, List<String> allJobNames) {
