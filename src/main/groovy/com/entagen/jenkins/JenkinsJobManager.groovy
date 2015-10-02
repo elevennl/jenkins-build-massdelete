@@ -8,6 +8,7 @@ class JenkinsJobManager {
     String branchNameRegex
     String jenkinsUser
     String jenkinsPassword
+    String nestedView
 
     Boolean dryRun = false
 
