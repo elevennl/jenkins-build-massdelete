@@ -41,7 +41,7 @@ class JenkinsJobManager {
         List<String> nonTemplateBranchNames = allBranchNames - templateBranchName
         List<ConcreteJob> expectedJobs = this.expectedJobs(templateJobs, nonTemplateBranchNames)
 
-        deleteDeprecatedJobs(currentTemplateDrivenJobNames - expectedJobs.jobName)
+        deleteDeprecatedJobs(currentTemplateDrivenJobNames)
     }
 
     public void deleteDeprecatedJobs(List<String> deprecatedJobNames) {
@@ -57,7 +57,7 @@ class JenkinsJobManager {
 //                FIXME
 //                jenkinsApi.deleteJob(jobName)
             } else {
-                println "Build job: $jobName doesn't match $shortenedJobName"
+                println "Won't delete build job: $jobName doesn't match $shortenedJobName"
             }
         }
     }
