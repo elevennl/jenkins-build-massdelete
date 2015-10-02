@@ -54,7 +54,10 @@ class JenkinsJobManager {
 
             if (branchNameRegexMatches) {
                 println "Deleting deprecated job: $jobName"
+//                FIXME
 //                jenkinsApi.deleteJob(jobName)
+            } else {
+                println "Build job: $jobName doesn't match $shortenedJobName"
             }
         }
     }
